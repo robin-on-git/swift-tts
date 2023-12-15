@@ -20,6 +20,7 @@ public final class Engine: NSObject, ObservableObject {
     public var rateRatio: Float
     public var voice: AVSpeechSynthesisVoice?
     private let speechSynthesizer = AVSpeechSynthesizer()
+    private var currentParallelSpeech = 0
 
     public init(
         rateRatio: Float = 1.0,
@@ -47,7 +48,10 @@ extension Engine: AVSpeechSynthesizerDelegate {
         _ synthesizer: AVSpeechSynthesizer,
         didFinish utterance: AVSpeechUtterance
     ) {
-        self.isSpeaking = false
+        currentParallelSpeech -= 1
+        if currentParallelSpeech == 0 {
+            self.isSpeaking = false
+        }
         self.speakingProgress = 1.0
     }
 
@@ -68,6 +72,7 @@ extension Engine: TTSEngine {
         let speechUtterance = AVSpeechUtterance(string: string)
         speechUtterance.voice = voice
         speechUtterance.rate *= rateRatio
+        currentParallelSpeech += 1
         self.speechSynthesizer.speak(speechUtterance)
         self.isSpeaking = true
     }
